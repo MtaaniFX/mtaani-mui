@@ -1,5 +1,8 @@
 # specify the base image with your desired version
 FROM guergeiro/pnpm:22-10
+
+WORKDIR /app
+
 COPY . .
 RUN pnpm install
 RUN pnpm run build
