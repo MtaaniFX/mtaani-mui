@@ -15,7 +15,7 @@ type FAQInfo = {
 const mockFaqs: FAQInfo[] = [
     {
         question: "How quickly can I start earning returns?",
-        answer: "Immediately after investing. Your 10% monthly return begins from the moment your funds are deposited.",
+        answer: "Immediately after investing. Your 20% monthly return begins from the moment your funds are deposited.",
     }, {
         question: "Are there any hidden fees?",
         answer: "Zero commission. Every shilling you invest directly contributes to your returns.",
@@ -24,13 +24,13 @@ const mockFaqs: FAQInfo[] = [
         answer: "We use sophisticated risk management algorithms and are regulated by Kenyan financial authorities like CMA and CBK.",
     },  {
         question: "How are returns calculated?",
-        answer: "10% flat monthly rate, calculated on your total invested amount. Simple, predictable, transparent.",
+        answer: "20% flat monthly rate, calculated on your total invested amount. Simple, predictable, transparent.",
     },{
         question: "What's the minimum investment?",
-        answer: "The minimum investment is $100",
+        answer: "The minimum investment is KES 10,000",
     },{
         question: "What's the maximum investment?",
-        answer: "You can invest however much you can. However, for investments more than $50,000, you have to contact us first.",
+        answer: "You can invest however much you can. However, for investments more than KES 500,000; you have to contact us first.",
     },
 ]
 

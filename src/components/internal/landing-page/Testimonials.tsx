@@ -20,7 +20,7 @@ const mockTestimonials: Testimonial[] = [
     {
         avatar: "res/testimonials/nothing-here.svg",
         name: 'Tatu Wambui',
-        message: "I was skeptical at first, but the consistent 10% returns have completely changed my perspective on investing.",
+        message: "I was skeptical at first, but the consistent 20% returns have completely changed my perspective on investing.",
         position: 'Investor'
     },
 
@@ -34,7 +34,7 @@ const mockTestimonials: Testimonial[] = [
     {
         avatar: "res/testimonials/nothing-here.svg",
         name: 'Jabari Mutiso',
-        message: "I started with just $100 and now make $50 monthly. It's like finding money I didn't know I had!",
+        message: "I started with just KES 10,000 and now make KES 5,000 monthly. It's like finding money I didn't know I had!",
         position: 'Investor'
     },
 

@@ -11,15 +11,15 @@ import Typography from '@mui/material/Typography';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/X';
-import {FaviconCol, FaviconRow} from '@/components/internal/icons/Favicon';
-import {siteName, siteURL} from '@/lib/constants'
+import { FaviconRow } from '@/components/internal/icons/Favicon';
+import { AppContactEmail, AppNameFull } from '@/const';
 
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
       {'Copyright © '}
-      <Link color="text.secondary" href={siteURL}>
-          {siteName}
+      <Link color="text.secondary" href="/">
+        {AppNameFull}
       </Link>
       &nbsp;
       {new Date().getFullYear()}
@@ -56,7 +56,9 @@ export default function Footer() {
           }}
         >
           <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
-            <FaviconRow />
+            <Box sx={{ textAlign: 'left', maxWidth: 'fit-content' }}>
+              <FaviconRow />
+            </Box>
             <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
               Join the newsletter
             </Typography>
@@ -64,7 +66,11 @@ export default function Footer() {
               Subscribe for weekly updates. No spams ever!
             </Typography>
             <InputLabel htmlFor="email-newsletter">Email</InputLabel>
-            <Stack direction="row" spacing={1} useFlexGap>
+            <Stack direction="row" spacing={1} useFlexGap component="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                console.log('subscribing user:', e.currentTarget?.value);
+              }}>
               <TextField
                 id="email-newsletter"
                 hiddenLabel
@@ -73,6 +79,7 @@ export default function Footer() {
                 fullWidth
                 aria-label="Enter your email address"
                 placeholder="Your email address"
+                required
                 slotProps={{
                   htmlInput: {
                     autoComplete: 'off',
@@ -86,6 +93,7 @@ export default function Footer() {
                 color="primary"
                 size="small"
                 sx={{ flexShrink: 0 }}
+                type='submit'
               >
                 Subscribe
               </Button>
@@ -102,23 +110,20 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
             Product
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="#go-features">
             Features
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="#go-testimonials">
             Testimonials
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Highlights
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="#go-pricing">
             Pricing
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="#go-faq">
             FAQs
           </Link>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             display: { xs: 'none', sm: 'flex' },
             flexDirection: 'column',
@@ -137,7 +142,7 @@ export default function Footer() {
           <Link color="text.secondary" variant="body2" href="#">
             Press
           </Link>
-        </Box>
+        </Box> */}
         <Box
           sx={{
             display: { xs: 'none', sm: 'flex' },
@@ -148,13 +153,13 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
             Legal
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
-            Terms
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/privacy-policy">
             Privacy Policy
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/terms">
+            Terms
+          </Link>
+          <Link color="text.secondary" variant="body2" href={`mailto:${AppContactEmail}`}>
             Contact
           </Link>
         </Box>
@@ -170,13 +175,13 @@ export default function Footer() {
         }}
       >
         <div>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/privacy-policy">
             Privacy Policy
           </Link>
           <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>
             &nbsp;•&nbsp;
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" variant="body2" href="/terms">
             Terms of Service
           </Link>
           <Copyright />

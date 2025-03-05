@@ -1,6 +1,7 @@
 export const AppName = "Mtaani";
 export const AppNameFull = "Mtaani FX";
 export const AppNameLong = "Investment Mtaani";
+export const AppContactEmail = "mtaanifx@gmail.com";
 
 export const Terms = `
 ## **Terms and Conditions of Use**

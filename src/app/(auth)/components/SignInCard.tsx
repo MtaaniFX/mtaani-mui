@@ -2,14 +2,14 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
+// import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { GoogleIcon, FacebookIcon } from './CustomIcons';
+// import { GoogleIcon, FacebookIcon } from './CustomIcons';
 import { FaviconRow } from '@/components/internal/icons/Favicon';
 import { paths } from "@/lib/paths";
 import UnderConstructionDialogue from "@/components/internal/ui/UnderConstructionDialogue";
@@ -18,37 +18,9 @@ import { useRouter } from "next/navigation";
 import { Alert, AlertTitle, Snackbar } from "@mui/material";
 import { MtCard } from '@/components/internal/styled/MtCard';
 import { validatePhoneNumber } from '@/utils/validations';
+import {FullScreenOverlay} from '@/app-components/loaders/loaders';
 
 const supabase = createClient();
-
-async function loginWithPhone(phoneNumber: string, password: string) {
-    try {
-        const response = await fetch('/sign-in/phone', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ phone_number: phoneNumber, password }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Login failed');
-        }
-
-        const data = await response.json();
-
-        // Update Supabase client with the new session
-        await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-        });
-
-    } catch (error) {
-        console.error('Error during login:', error);
-        throw error;
-    }
-}
 
 export default function SignInCard() {
     const [emailOrPhoneError, setEmailOrPhoneError] = React.useState(false);
@@ -57,12 +29,20 @@ export default function SignInCard() {
     const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
     const [underConstruction, setUnderConstruction] = React.useState(false);
     const [submissionError, setSubmissionError] = React.useState(false);
+    const [openOverlay, setOpenOverlay ] = React.useState(false);
     const [submissionMessage, setSubmissionMessage] = React.useState('');
     const router = useRouter();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        setOpenOverlay(true);
+        const deferred = () => {
+            setOpenOverlay(false);
+        };
+
         if (emailOrPhoneError || passwordError) {
+            deferred();
             return;
         }
 
@@ -71,6 +51,7 @@ export default function SignInCard() {
         const password = formData.get('password');
 
         if (!emailOrPhone || !password) {
+            deferred();
             return
         }
 
@@ -134,6 +115,7 @@ export default function SignInCard() {
         if (error) {
             setSubmissionError(true);
             setSubmissionMessage(error);
+            deferred();
             return
         }
 
@@ -294,6 +276,7 @@ export default function SignInCard() {
                     Sign in with Facebook
                 </Button>
             </Box> */}
+            <FullScreenOverlay open={openOverlay} message='Signing you in...'/>
         </MtCard>
     );
 }

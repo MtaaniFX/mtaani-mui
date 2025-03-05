@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import type { Metadata } from 'next';
 import { AppName } from '@/const';
 // import { PageContainer } from '@toolpad/core/PageContainer';
-
+import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 
 export const metadata: Metadata = {
   title: `Dashboard | ${AppName}`,

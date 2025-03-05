@@ -23,7 +23,7 @@ const features: FeatureProp[] =  [
         icon: <TrendingUpRounded/>,
         title: 'Instant Returns',
         description:
-            'Earn guaranteed 10% monthly returns immediately after investment, ' +
+            'Earn guaranteed 20% monthly returns immediately after investment, ' +
             'with no waiting periods or complex vesting schedules. ' +
             'Your money starts working for you the moment you invest',
         image: "/res/features/instant-returns.jpeg",
@@ -73,7 +73,7 @@ const features: FeatureProp[] =  [
         icon: <TuneRounded/>,
         title: 'Flexible Investment',
         description:
-            "Scale your investment seamlessly from $100 to $1,000 in $50 increments. " +
+            "Scale your investment seamlessly from KES 10,000 to KES 100,000 in KES 5,000 increments. " +
             "Adapt your investment strategy as your financial goals evolve, " +
             "with complete control over your investment amount.",
         image: "/res/features/flexible-investment.jpeg",
