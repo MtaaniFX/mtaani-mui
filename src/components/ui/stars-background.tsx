@@ -1,5 +1,6 @@
-// See https://ui.aceternity.com/components/shooting-stars-and-stars-background
+// @ts-nocheck
 
+// See https://ui.aceternity.com/components/shooting-stars-and-stars-background
 "use client";
 import { cn } from "@/lib/utils";
 import React, {

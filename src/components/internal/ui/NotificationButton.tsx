@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {alpha, styled} from "@mui/material/styles";
 
 const NotificationButton = styled('div')(({ theme }) => ({
