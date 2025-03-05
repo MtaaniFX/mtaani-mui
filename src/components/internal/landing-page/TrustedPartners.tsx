@@ -22,7 +22,7 @@ const logos: LogoInfo[] = [
     
     {
         alt: "Lipa na M-Pesa",
-        src: "res/regulatory/mpesa-payment.webp",
+        src: "/res/regulatory/mpesa-payment.webp",
     },
 
     // {
