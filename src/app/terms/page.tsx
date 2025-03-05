@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 import ReactMarkdown from "react-markdown";
 
 export const metadata: Metadata = {
-    title: `Privacy Policy | ${AppName}`,
+    title: `Terms | ${AppName}`,
     description: "Your first steps in making an investment that counts",
 };
 

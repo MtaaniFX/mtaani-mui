@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography';
 
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import { paths } from '@/lib/paths';
 
 const tiers = [
     {
@@ -204,6 +205,7 @@ export default function Pricing() {
                                     fullWidth
                                     variant={tier.buttonVariant as 'outlined' | 'contained'}
                                     color={tier.buttonColor as 'primary' | 'secondary'}
+                                    href={paths.auth.signUp}
                                 >
                                     {tier.buttonText}
                                 </Button>
