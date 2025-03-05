@@ -22,6 +22,7 @@ import theme from "@/theme";
 import { createClient } from "@/utils/supabase/client";
 import { FullScreenOverlay } from "@/app-components/loaders/loaders";
 import { useRouter } from "next/navigation";
+import { paths } from "@/lib/paths";
 
 const steps = [
     {
@@ -260,7 +261,7 @@ export default function Main() {
             return;
         }
 
-        router.push("/verify");
+        router.push(paths.dashboard.overview);
     }
 
     return (
