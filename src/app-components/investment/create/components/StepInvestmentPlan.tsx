@@ -1,10 +1,10 @@
-import React, {ReactNode} from "react";
+import React, { ReactNode } from "react";
 import Stack from "@mui/material/Stack";
 import InvestmentPlanCard, {
     InvestmentPlanCardProps
 } from "@/customcomponents/InvestmentPlanCard";
-import {ReactStateString} from "@/types/react";
-import {Grid2 as Grid} from "@mui/material";
+import { ReactStateString } from "@/types/react";
+import { Grid2 as Grid } from "@mui/material";
 
 function StepInvestmentPlan({ children, currentPlan, setCurrentPlan }: { children?: ReactNode, currentPlan: string, setCurrentPlan: ReactStateString }) {
     const selectionCards: InvestmentPlanCardProps[] = [
@@ -22,9 +22,10 @@ function StepInvestmentPlan({ children, currentPlan, setCurrentPlan }: { childre
             priceIntro: "from",
             features: [
                 'Investment upto KES 50,000',
-                '10% Monthly Returns',
+                '20% Monthly returns',
+                'Enjoy standard bonuses and rewards',
                 'Best for new investors',
-                'Minimal entry, full flexibility',
+                'Minimal entry, same reliable rate',
             ],
             actionText: "Get Started",
         },
@@ -43,9 +44,10 @@ function StepInvestmentPlan({ children, currentPlan, setCurrentPlan }: { childre
             priceIntro: "from",
             features: [
                 'Investment upto KES 100,000',
-                '10% Monthly Returns',
+                '20% Monthly returns',
+                'Unlock enhanced bonuses and rewards',
                 'Best for growing investors',
-                'Full flexibility',
+                'Higher potential earnings, steady growth',
             ],
             actionText: "Go For It",
         },
@@ -64,9 +66,10 @@ function StepInvestmentPlan({ children, currentPlan, setCurrentPlan }: { childre
             priceIntro: "from",
             features: [
                 'Investment upto KES 500,000',
-                '10% Monthly Returns',
+                '20% Monthly returns',
+                'Experience Elite bonuses and rewards',
                 'Best for heavy investors',
-                'Full flexibility',
+                'Maximum investment potential, maximum returns',
             ],
             actionText: "Let's Do This",
         },
@@ -75,14 +78,14 @@ function StepInvestmentPlan({ children, currentPlan, setCurrentPlan }: { childre
     return (
         <>
             <Grid container
-                  spacing={{xs: 2, md: 3}}
-                  sx={{
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                  }}>
+                spacing={{ xs: 2, md: 3 }}
+                sx={{
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                }}>
                 {selectionCards.map((product, index) => (
-                    <Grid key={index} size={{xs: 12, md: 6, lg: 4}} >
-                        <InvestmentPlanCard {...product} key={index}/>
+                    <Grid key={index} size={{ xs: 12, md: 6, lg: 4 }} >
+                        <InvestmentPlanCard {...product} key={index} />
                     </Grid>
                 ))}
             </Grid>

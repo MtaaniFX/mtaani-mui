@@ -30,9 +30,11 @@ function InvestmentTerms({ children, selectedTerm, setSelectedTerm }: Props) {
             price: "",
             priceIntro: "",
             features: [
-                'Be your own boss',
-                'Set your goals',
-                'Fund at your own pace',
+                'Earn simple interest every month end',
+                "Withdraw principal anytime (T&Cs apply)",
+                "Fast principal/interest withdrawal at maturity",
+                "Optional reinvestment",
+                'Interest rate bonuses for larger deposits',
             ],
             actionText: "",
         },
@@ -50,9 +52,13 @@ function InvestmentTerms({ children, selectedTerm, setSelectedTerm }: Props) {
             price: "",
             priceIntro: "",
             features: [
-                'Manage investments in the group',
-                'Outline group goals',
-                'Faster funding, huge investments',
+                'Earn compound interest every month end',
+                'Principal and Interest locked for the investment period',
+                "Withdraw principal at the end of investment period",
+                'Flexible investment terms from 2 months to 3 years',
+                'Investment terms extensions possibility',
+                'Interest rate bonuses for larger deposits',
+                'Exclusive rewards for longer commitment periods',
             ],
             actionText: "",
         },
@@ -61,7 +67,8 @@ function InvestmentTerms({ children, selectedTerm, setSelectedTerm }: Props) {
     return (
         <>
             <Typography gutterBottom>
-                Choose from our flexible investment options; monthly payouts or fixed-term returns
+                Choose from our flexible investment options; 
+                monthly payouts or fixed-term returns
             </Typography>
             <Grid container
                 spacing={{ xs: 2, md: 3 }}
