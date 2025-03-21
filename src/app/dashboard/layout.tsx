@@ -9,7 +9,7 @@ import LinearProgress from '@mui/material/LinearProgress'
 
 // import theme from '@/theme';
 import { rawTheme } from '@/theme';
-// import { FaviconRow } from '@/components/internal/icons/Favicon';
+import { AppBarFavicon } from '@/components/internal/icons/Favicon';
 import { paths } from '@/lib/paths';
 import { AppName } from '@/const';
 import Box from '@mui/material/Box';
@@ -37,6 +37,7 @@ import type { Navigation, Router, Session } from '@toolpad/core/AppProvider';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { FullScreenOverlay } from '@/app-components/loaders/loaders';
+import { Group } from '@mui/icons-material';
 
 const NAVIGATION: Navigation = [
   {
@@ -47,6 +48,16 @@ const NAVIGATION: Navigation = [
     segment: paths.dashboard.overview,
     title: 'Overview',
     icon: <DashboardIcon />,
+  },
+  
+  {
+    kind: 'header',
+    title: 'Marketing',
+  },
+  {
+    segment: paths.dashboard.referrals,
+    title: 'Referrals',
+    icon: <Group />,
   },
   // {
   //   segment: paths.dashboard.orders,
@@ -65,8 +76,8 @@ const NAVIGATION: Navigation = [
 ];
 
 const BRANDING = {
-  title: AppName,
-  // logo: <FaviconRow/>,
+  title: "",
+  logo: <AppBarFavicon/>,
   homeUrl: '/',
 };
 

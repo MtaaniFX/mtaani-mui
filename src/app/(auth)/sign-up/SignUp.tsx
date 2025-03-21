@@ -21,7 +21,7 @@ import { useTheme } from '@mui/material/styles';
 import { validatePhoneNumber } from '@/utils/validations';
 import ReactMarkdown from 'react-markdown';
 import { Terms } from "@/const";
-import {FaviconRow} from "@/components/internal/icons/Favicon";
+import { FaviconRow } from "@/components/internal/icons/Favicon";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -114,6 +114,44 @@ export type FormDetails = {
   name: string,
   password: string,
   phone: string,
+  referralCode: string,
+}
+
+// Example usage:
+//  const baseUrl = "https://mtaani.devhive.buzz";  // This can be dynamically passed from the command line
+//  const result = validateReferralCode("https://mtaani.devhive.buzz/invite/?code=ABC123", baseUrl);
+//  if (result.error) {
+//    console.log(result.error);
+//  } else {
+//    console.log(`Referral code is: ${result.code}`);
+//  }
+function validateReferralCode(referralCode: string, baseUrl: string): { code: string | null, error: string | null } {
+  // Regular expression to check if the referral code is a valid 6-digit alphanumeric code (A-Z, 0-9)
+  const regex = /^[A-Z0-9]{6}$/;
+
+  // Dynamic URL pattern to check for valid referral code format in the provided baseUrl
+  const urlPattern = new RegExp(`^${baseUrl.replace(/\/$/, '')}\/invite\/\\?code=([A-Z0-9]{6})$`, 'i');
+
+  let code: string | null = null;
+
+  // If the referral code is in URL format
+  if (urlPattern.test(referralCode)) {
+    const match = referralCode.match(urlPattern);
+    if (match && match[1]) {
+      code = match[1];
+    }
+  }
+  // If the referral code is just 6 alphanumeric characters
+  else if (regex.test(referralCode)) {
+    code = referralCode;
+  }
+
+  // Return the result
+  if (code) {
+    return { code, error: null };
+  } else {
+    return { code: null, error: "Invalid referral code. It must be a 6 digit alphanumeric code." };
+  }
 }
 
 export default function SignUp(props: { onSubmit?: (values: FormDetails) => void }) {
@@ -124,6 +162,9 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
 
   const [phoneError, setPhoneError] = React.useState(false);
   const [phoneErrorMessage, setPhoneErrorMessage] = React.useState('');
+
+  const [referralError, setReferralError] = React.useState(false);
+  const [referralErrorMessage, setReferralErrorMessage] = React.useState('');
 
   const theme = useTheme();
   // Section: Hide or show the password field
@@ -166,6 +207,7 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
     const phone = document.getElementById('phone') as HTMLInputElement;
     const password = document.getElementById('password') as HTMLInputElement;
     const name = document.getElementById('name') as HTMLInputElement;
+    const referralCode = document.getElementById('referral') as HTMLInputElement;
 
     let isValid = true;
 
@@ -208,6 +250,16 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
       setFormError(false);
     }
 
+    setReferralError(false);
+    setReferralErrorMessage("");
+    if(referralCode.value) {
+      const {error} = validateReferralCode(referralCode.value, "https://mtaani.devhive.buzz");
+      if(error) {
+        setReferralError(true);
+        setReferralErrorMessage(error || "Please enter a valid code");
+      }
+    }
+
     return isValid;
   };
 
@@ -222,21 +274,29 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
       name: data.get('name')!.toString(),
       phone: data.get('phone')!.toString(),
       password: data.get('password')!.toString(),
+      referralCode: data.get('referral')!.toString(),
     };
 
     // submit the phone number in international format
     const { phoneNumber } = validatePhoneNumber(formDetails.phone);
     formDetails.phone = phoneNumber!;
+
+    // submit the parsed referral code
+    const {code: referralCode} = validateReferralCode(formDetails.referralCode, "https://mtaani.devhive.buzz");
+    if(referralCode) {
+      formDetails.referralCode = referralCode;
+    }
+
     console.log('submitting form:', formDetails);
 
     if (props.onSubmit) {
       props.onSubmit(formDetails);
     }
   };
-  
+
   return (
     <>
-    <Box sx={{width: '3rem', height: '3rem'}}></Box>
+      <Box sx={{ width: '3rem', height: '3rem' }}></Box>
       <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
@@ -324,6 +384,20 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
                   &nbsp;&nbsp;&nbsp;&nbsp;{passwordErrorMessage}
                 </Typography>
               )}
+            </FormControl>
+            <FormControl>
+              <FormLabel htmlFor="referral">Have a referral code/link?</FormLabel>
+              <TextField
+                fullWidth
+                id="referral"
+                placeholder="XXXXXX or https://mtaani.devhive.buzz/invite/?code=XXXXXX"
+                name="referral"
+                autoComplete="referral"
+                variant="outlined"
+                error={referralError}
+                helperText={referralErrorMessage}
+                color={referralError ? 'error' : 'primary'}
+              />
             </FormControl>
             <Box sx={{ ml: 0.2 }}>
               <ControlledCheckbox

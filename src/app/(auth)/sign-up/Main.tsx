@@ -23,6 +23,7 @@ import { createClient } from "@/utils/supabase/client";
 import { FullScreenOverlay } from "@/app-components/loaders/loaders";
 import { useRouter } from "next/navigation";
 import { paths } from "@/lib/paths";
+import { ReferralService } from "@/database/referrals/crud";
 
 const steps = [
     {
@@ -131,6 +132,7 @@ export default function Main() {
                 channel: 'sms',
                 data: {
                     full_name: values.name,
+                    referrer: values.referralCode,
                 }
             },
         });
@@ -259,6 +261,21 @@ export default function Main() {
             console.error('Unhandled investment type: ', currentType);
             showError();
             return;
+        }
+
+        // Register the user's referral
+        const crud = new ReferralService(supabase);
+        const response = await crud.getReferralCodeByCode(values.referralCode);
+        if(response.error || !response.data) {
+            console.error(response.error);
+        }
+
+        const referrerUserId = response.data?.user_id;
+        if (referrerUserId) {
+            const response = await crud.createReferral(referrerUserId, userId, values.referralCode);
+            if(response.error || !response.data) {
+                console.error(response.error);
+            }
         }
 
         router.replace(paths.dashboard.overview);

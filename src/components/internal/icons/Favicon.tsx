@@ -61,6 +61,31 @@ export function FaviconRow() {
     )
 }
 
+export function AppBarFavicon() {
+    const theme = useTheme();
+    return (
+        <Stack direction="row"
+               spacing={0.08}
+               sx={{
+                   justifyContent: "center",
+                   alignItems: "center",
+                   ml: 1,
+                   mt: 0.8,
+               }}>
+            <FaviconBase fill={theme.palette.primary.main}/>
+            <Typography
+                sx={{
+                    fontFamily: Melete.style.fontFamily,
+                    fontSize: '21px',
+                    color: theme.palette.primary.main,
+                    letterSpacing: "0",
+                    mr: 3,
+                }}
+            >{AppName.toUpperCase()}</Typography>
+        </Stack>
+    )
+}
+
 export function FaviconRowTextColor() {
     // const theme = useTheme();
     return (
