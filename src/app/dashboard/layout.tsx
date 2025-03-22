@@ -37,7 +37,8 @@ import type { Navigation, Router, Session } from '@toolpad/core/AppProvider';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { FullScreenOverlay } from '@/app-components/loaders/loaders';
-import { AttachMoney, Group } from '@mui/icons-material';
+import { AccountBalanceWalletRounded, Group } from '@mui/icons-material';
+
 
 const NAVIGATION: Navigation = [
   {
@@ -51,8 +52,8 @@ const NAVIGATION: Navigation = [
   },
   {
     segment: paths.dashboard.newInvestment,
-    title: 'Investment',
-    icon: <AttachMoney />,
+    title: 'Invest',
+    icon: <AccountBalanceWalletRounded />,
   },
   
   {
