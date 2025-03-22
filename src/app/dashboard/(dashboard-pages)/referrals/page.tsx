@@ -171,7 +171,7 @@ export default function ReferralPage() {
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 {/* Your Referral Details */}
                 <Box mb={4}>
-                    <Typography variant="h6" gutterBottom>
+                    <Typography id='cab-target' variant="h6" gutterBottom>
                         Your Referral Details
                     </Typography>
                     <Card sx={{ p: 3 }}>

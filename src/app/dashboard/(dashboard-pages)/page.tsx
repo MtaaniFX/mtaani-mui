@@ -4,6 +4,16 @@ import { useEffect, useState } from 'react';
 import { Typography, List, ListItem, ListItemText, Chip, Box, CircularProgress, LinearProgress, Card, CardContent, Button, Alert } from '@mui/material';
 import { createClient } from '@/utils/supabase/client';
 import { AccountBalance } from '@mui/icons-material';
+import * as React from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Slide from '@mui/material/Slide';
+import { TransitionProps } from '@mui/material/transitions';
+import PaymentInfo from './payment';
+import { PaymentPhoneNumber } from '@/const';
 
 type IndividualInvestment = {
     id: string;
@@ -28,11 +38,74 @@ type Investment = {
     data: IndividualInvestment | GroupInvestment,
 };
 
+// Dialogue transition
+const Transition = React.forwardRef(function Transition(
+    props: TransitionProps & {
+        children: React.ReactElement<any, any>;
+    },
+    ref: React.Ref<unknown>,
+) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
+
+function AlertDialogSlide() {
+    const [open, setOpen] = React.useState(false);
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    return (
+        <React.Fragment>
+            <Button variant="outlined" onClick={handleClickOpen}>
+                Slide in alert dialog
+            </Button>
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+                aria-describedby="alert-dialog-slide-description"
+            >
+                <DialogTitle>{"Use Google's location service?"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-slide-description">
+                        Let Google help apps determine location. This means sending anonymous
+                        location data to Google, even when no apps are running.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Disagree</Button>
+                    <Button onClick={handleClose}>Agree</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
+    );
+}
+
+
 export default function InvestmentsList() {
     const supabase = createClient();
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [open, setOpen] = React.useState(false);
+    const [phoneNumber, setPhoneNumber] = React.useState(PaymentPhoneNumber);
+    const [amount, setAmount] = React.useState('');
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     const fetchInvestments = async () => {
         try {
@@ -143,65 +216,96 @@ export default function InvestmentsList() {
     }
 
     return (
-        <List>
-            {investments.map((investment, index) => (
-                <ListItem key={index} divider>
-                    <ListItemText
-                        primary={
-                            <>
-                                <Typography variant="h6">
-                                    {investment.type === 'individual' ? 'Individual Investment' : `Group Investment: ${(investment.data as GroupInvestment).group_name}`}
-                                </Typography>
-                                <Box mt={1}>
-                                    <Chip
-                                        label={investment.data.inv_type === 'locked' ? 'Locked' : 'Normal'}
-                                        color={investment.data.inv_type === 'locked' ? 'secondary' : 'primary'}
-                                        size="small"
-                                    />
-                                    {investment.data.inv_type === 'locked' && (
-                                        <Chip
-                                            label={`${investment.data.locked_months} months`}
-                                            color="info"
-                                            size="small"
-                                            style={{ marginLeft: '8px' }}
-                                        />
-                                    )}
-                                </Box>
-                            </>
-                        }
-                        secondary={
-                            <>
-                                {investment.type === "individual" &&
-                                    <Typography variant="body2">
-                                        Amount: {(investment.data as IndividualInvestment).principal}
+        <>
+            <List>
+                {investments.map((investment, index) => (
+                    <ListItem key={index} divider>
+                        <ListItemText
+                            primary={
+                                <>
+                                    <Typography variant="h6">
+                                        {investment.type === 'individual' ? 'Individual Investment' : `Group Investment: ${(investment.data as GroupInvestment).group_name}`}
                                     </Typography>
+                                    <Box mt={1}>
+                                        <Chip
+                                            label={investment.data.inv_type === 'locked' ? 'Locked' : 'Normal'}
+                                            color={investment.data.inv_type === 'locked' ? 'secondary' : 'primary'}
+                                            size="small"
+                                        />
+                                        {investment.data.inv_type === 'locked' && (
+                                            <Chip
+                                                label={`${investment.data.locked_months} months`}
+                                                color="info"
+                                                size="small"
+                                                style={{ marginLeft: '8px' }}
+                                            />
+                                        )}
+                                    </Box>
+                                </>
+                            }
+                            secondary={
+                                <>
+                                    {investment.type === "individual" &&
+                                        <Typography variant="body2">
+                                            Amount: {(investment.data as IndividualInvestment).principal}
+                                        </Typography>
+                                    }
+                                    <Typography variant="body2">
+                                        Created: {new Date(investment.data.created_at).toLocaleDateString()}
+                                    </Typography>
+                                </>
+                            }
+                        />
+                        {investment.data.status !== "active" && <>
+                            <Button onClick={async () => {
+                                let amount = 0;
+                                if (investment.type === "individual") {
+                                    amount = (investment.data as IndividualInvestment).principal;
                                 }
-                                <Typography variant="body2">
-                                    Created: {new Date(investment.data.created_at).toLocaleDateString()}
-                                </Typography>
-                            </>
-                        }
-                    />
-                    {investment.data.status !== "active" && <>
-                        <Button onClick={async () => { 
-                            let amount = 0;
-                            if (investment.type === "individual") {
-                                amount = (investment.data as IndividualInvestment).principal;
-                            }
 
-                            const { data: { user } } = await supabase.auth.getUser();
-                            if (!user) {
-                                throw new Error('User not logged in');
-                            }
-                
-                            console.log(`Initializing payment of  KES: ${amount} by phone: ${user.phone}`);
-                        }}>
-                            Make Payments
-                        </Button>
-                    </>
-                    }
-                </ListItem>
-            ))}
-        </List>
+                                const { data: { user } } = await supabase.auth.getUser();
+                                if (!user) {
+                                    throw new Error('User not logged in');
+                                }
+
+                                console.log(`Initializing payment of  KES: ${amount} by phone: ${user.phone}`);
+                                setPhoneNumber(PaymentPhoneNumber);
+                                setAmount(String(amount));
+
+                                setOpen(true);
+                            }}>
+                                Make Payments
+                            </Button>
+                        </>
+                        }
+                    </ListItem>
+                ))}
+            </List>
+
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+                aria-describedby="alert-dialog-slide-description"
+            >
+                <DialogTitle>Payment</DialogTitle>
+                <DialogContent>
+                    <Dialog
+                        open={open}
+                        TransitionComponent={Transition}
+                        keepMounted
+                        onClose={handleClose}
+                        aria-describedby="alert-dialog-slide-description"
+                    >
+                        {/* <DialogTitle>Payment Details</DialogTitle> */}
+                        <PaymentInfo phoneNumber={phoneNumber} amount={amount} />
+                        <DialogActions>
+                            <Button onClick={handleClose}>Ok</Button>
+                        </DialogActions>
+                    </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

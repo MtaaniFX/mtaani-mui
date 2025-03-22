@@ -130,7 +130,7 @@ function validateReferralCode(referralCode: string, baseUrl: string): { code: st
   const regex = /^[A-Z0-9]{6}$/;
 
   // Dynamic URL pattern to check for valid referral code format in the provided baseUrl
-  const urlPattern = new RegExp(`^${baseUrl.replace(/\/$/, '')}\/invite\/\\?code=([A-Z0-9]{6})$`, 'i');
+  const urlPattern = new RegExp(`^${baseUrl.replace(/\/$/, '')}/invite/\\?code=([A-Z0-9]{6})$`, 'i');
 
   let code: string | null = null;
 

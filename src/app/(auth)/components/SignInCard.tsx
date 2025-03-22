@@ -100,12 +100,14 @@ export default function SignInCard() {
             // } catch {
             //     error = "Login Failed";
             // }
+            console.log('signing in with phone');
             const {phoneNumber} = validatePhoneNumber(emailOrPhone as string);
             const response = await supabase.auth.signInWithPassword({
                 phone: phoneNumber!,
                 password: password as string,
             });
-
+            console.log('done -> response:', response);
+            
             if (response.error) {
                 error = response.error?.message;
             }
@@ -121,12 +123,14 @@ export default function SignInCard() {
 
         setTimeout(() => {
             const url = new URL(window.location.href);
-            const redirectTo = url.searchParams.get("redirect_to");
+            const redirectTo = url.searchParams.get("next");
 
             if (redirectTo) {
                 router.replace(redirectTo);
             } else {
+                console.log('redirecting to dashboard: ')
                 router.replace(paths.dashboard.overview);
+                console.log('done: -> redirecting to dashboard: ')
             }
         }, 200);
     };

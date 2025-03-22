@@ -17,6 +17,7 @@ export const paths = {
         orders: `${dashboard}/orders`,
         profile: `${dashboard}/profile`,
         referrals: `${dashboard}/referrals`,
+        newInvestment: `${dashboard}/investments/new`,
     },
 } as const;
 

@@ -46,10 +46,12 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL(paths.auth.signIn, request.url));
     }
     
-    if (request.nextUrl.pathname.startsWith(`/${paths.dashboard.root}`) && user.error) {
-      // User is not authenticated, redirect them to sign-in
-      return NextResponse.redirect(new URL(paths.auth.signIn, request.url));
-    }
+    // if (request.nextUrl.pathname.startsWith(`/${paths.dashboard.root}`) && user.error) {
+    //   // User is not authenticated, redirect them to sign-in
+    //   console.error(`middleware: user trying to access protected page: 
+    //     '${request.nextUrl.pathname}' -> redirecting to sign-in. reason: ${user.error}`);
+    //   return NextResponse.redirect(new URL(paths.auth.signIn, request.url));
+    // }
 
     // if (request.nextUrl.pathname === "/" && !user.error) {
     //   // User is authenticated, redirect to the dashboard

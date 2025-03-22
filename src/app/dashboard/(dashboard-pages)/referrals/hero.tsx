@@ -62,6 +62,12 @@ const Hero: React.FC = () => {
                             backgroundColor: theme.palette.primary.dark,
                         },
                     }}
+                    onClick={(e) => {
+                        const target = document.getElementById('cab-target');
+                        if(target) {
+                            target.scrollIntoView({behavior: "smooth", block: 'start'});
+                        }
+                    }}
                 >
                     Get Started
                 </Button>
@@ -84,6 +90,7 @@ const Hero: React.FC = () => {
                         height: "auto",
                         borderRadius: "8px",
                     }}
+                    priority
                 />
             </Box>
         </Box>
