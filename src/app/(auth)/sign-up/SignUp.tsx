@@ -20,7 +20,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { validatePhoneNumber } from '@/utils/validations';
 import ReactMarkdown from 'react-markdown';
-import { Terms } from "@/const";
+import { AppDomain, Terms } from "@/const";
 import { FaviconRow } from "@/components/internal/icons/Favicon";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -154,7 +154,7 @@ function validateReferralCode(referralCode: string, baseUrl: string): { code: st
   }
 }
 
-export default function SignUp(props: { onSubmit?: (values: FormDetails) => void }) {
+export default function SignUp(props: { onSubmit?: (values: FormDetails) => void, inviteCode?: string }) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
@@ -253,7 +253,7 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
     setReferralError(false);
     setReferralErrorMessage("");
     if(referralCode.value) {
-      const {error} = validateReferralCode(referralCode.value, "https://mtaani.devhive.buzz");
+      const {error} = validateReferralCode(referralCode.value, AppDomain);
       if(error) {
         setReferralError(true);
         setReferralErrorMessage(error || "Please enter a valid code");
@@ -282,7 +282,7 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
     formDetails.phone = phoneNumber!;
 
     // submit the parsed referral code
-    const {code: referralCode} = validateReferralCode(formDetails.referralCode, "https://mtaani.devhive.buzz");
+    const {code: referralCode} = validateReferralCode(formDetails.referralCode, AppDomain);
     if(referralCode) {
       formDetails.referralCode = referralCode;
     }
@@ -390,7 +390,8 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
               <TextField
                 fullWidth
                 id="referral"
-                placeholder="XXXXXX or https://mtaani.devhive.buzz/invite/?code=XXXXXX"
+                placeholder={`XXXXXX or ${AppDomain}/invite/XXXXXX`}
+                defaultValue={props.inviteCode}
                 name="referral"
                 autoComplete="referral"
                 variant="outlined"
