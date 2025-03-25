@@ -12,7 +12,7 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from '../../shared-theme/ColorModeIconDropdown';
-import {FaviconRow} from "@/components/internal/icons/Favicon";
+import { FaviconRow } from "@/components/internal/icons/Favicon";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     display: 'flex',
@@ -27,6 +27,17 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     boxShadow: theme.shadows[1],
     padding: '8px 12px',
 }));
+
+// Create a styled <a> component with no default agent styles
+const CustomLink = styled('a')({
+    textDecoration: 'none', // Remove underline
+    color: 'inherit',       // Inherit text color from parent
+    cursor: 'pointer',      // Ensure the cursor is a pointer
+    ':focus': {
+        // remove outline when the link is focused
+        outline: 'none',
+    },
+});
 
 export default function AppAppBar() {
     const [open, setOpen] = React.useState(false);
@@ -50,8 +61,8 @@ export default function AppAppBar() {
                 <StyledToolbar variant="dense" disableGutters>
                     <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
                         {/*Some margin before the Favicon*/}
-                        <Box sx={{ml: 1}}/>
-                        <FaviconRow/>
+                        <Box sx={{ ml: 1 }} />
+                        <FaviconRow />
                         <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
                             <Button href={"/#go-features"} variant="text" color="info" size="small">
                                 Features
@@ -74,10 +85,10 @@ export default function AppAppBar() {
                             alignItems: 'center',
                         }}
                     >
-                        <Button  href={"/sign-in"} color="primary" variant="text" size="small">
+                        <Button href={"/sign-in"} color="primary" variant="text" size="small">
                             Sign in
                         </Button>
-                        <Button  href={"/sign-up"} color="primary" variant="contained" size="small">
+                        <Button href={"/sign-up"} color="primary" variant="contained" size="small">
                             Sign up
                         </Button>
                         <ColorModeIconDropdown />
@@ -109,10 +120,21 @@ export default function AppAppBar() {
                                     </IconButton>
                                 </Box>
 
-                                <MenuItem href={"/#go-features"}>Features</MenuItem>
-                                <MenuItem href={"/#go-testimonials"}>Testimonials</MenuItem>
-                                <MenuItem href={"/#go-pricing"}>Pricing</MenuItem>
-                                <MenuItem href={"/#go-faq"}>FAQ</MenuItem>
+                                <CustomLink href={"/#go-features"}>
+                                    <MenuItem>Features</MenuItem>
+                                </CustomLink>
+
+                                <CustomLink href={"/#go-testimonials"}>
+                                    <MenuItem>Testimonials</MenuItem>
+                                </CustomLink>
+
+                                <CustomLink href={"/#go-pricing"}>
+                                    <MenuItem>Pricing</MenuItem>
+                                </CustomLink>
+
+                                <CustomLink href={"/#go-faq"}>
+                                    <MenuItem>FAQ</MenuItem>
+                                </CustomLink>
                                 <Divider sx={{ my: 3 }} />
                                 <MenuItem>
                                     <Button href={"/sign-up"} color="primary" variant="contained" fullWidth>

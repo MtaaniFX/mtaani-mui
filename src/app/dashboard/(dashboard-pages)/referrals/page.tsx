@@ -168,8 +168,9 @@ export default function ReferralPage() {
 
     return (
         <>
-            <Hero />
             <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Hero />
+                
                 {/* Your Referral Details */}
                 <Box mb={4}>
                     <Typography id='cab-target' variant="h6" gutterBottom>

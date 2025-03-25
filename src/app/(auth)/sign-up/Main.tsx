@@ -454,7 +454,9 @@ export default function Main(props: { inviteCode?: string }) {
                 </Alert>
             </Snackbar>
 
-            <FullScreenOverlay open={overlayOpen} message="Creating investment..."></FullScreenOverlay>
+            <FullScreenOverlay
+                open={overlayOpen}
+                message="Creating investment..." />
         </>
     )
 }
