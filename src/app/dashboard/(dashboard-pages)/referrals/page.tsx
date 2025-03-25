@@ -41,6 +41,7 @@ import Hero from './hero'
 import HowItWorks from './how-it-works'
 import { ReferralService, ReferralCode } from '@/database/referrals/crud'
 import { formatTimestampToLocalTime } from '@/database/time'
+import { AppDomain } from '@/const'
 
 interface Referral {
     id: string
@@ -105,7 +106,7 @@ export default function ReferralPage() {
         const code = await getReferralCode();
         if (code) {
             setReferralCode(code);
-            setReferralLink(`https://mtaani.devhive.buzz/invite/?code=${code}`);
+            setReferralLink(`${AppDomain}/invite/${code}`);
         }
 
         {
@@ -167,8 +168,9 @@ export default function ReferralPage() {
 
     return (
         <>
-            <Hero />
             <Container maxWidth="lg" sx={{ py: 4 }}>
+                <Hero />
+                
                 {/* Your Referral Details */}
                 <Box mb={4}>
                     <Typography id='cab-target' variant="h6" gutterBottom>

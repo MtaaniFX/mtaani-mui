@@ -2,23 +2,22 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-// import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-// import { GoogleIcon, FacebookIcon } from './CustomIcons';
 import { FaviconRow } from '@/components/internal/icons/Favicon';
 import { paths } from "@/lib/paths";
 import UnderConstructionDialogue from "@/components/internal/ui/UnderConstructionDialogue";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Alert, AlertTitle, Snackbar } from "@mui/material";
+import { Alert, AlertTitle, InputAdornment, OutlinedInput, Snackbar, useTheme } from "@mui/material";
 import { MtCard } from '@/components/internal/styled/MtCard';
 import { validatePhoneNumber } from '@/utils/validations';
-import {FullScreenOverlay} from '@/app-components/loaders/loaders';
+import { FullScreenOverlay } from '@/app-components/loaders/loaders';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const supabase = createClient();
 
@@ -29,9 +28,14 @@ export default function SignInCard() {
     const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
     const [underConstruction, setUnderConstruction] = React.useState(false);
     const [submissionError, setSubmissionError] = React.useState(false);
-    const [openOverlay, setOpenOverlay ] = React.useState(false);
+    const [openOverlay, setOpenOverlay] = React.useState(false);
     const [submissionMessage, setSubmissionMessage] = React.useState('');
     const router = useRouter();
+    const theme = useTheme();
+
+    // Section: Hide or show the password field
+    const [showPassword, setShowPassword] = React.useState(false);
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -101,13 +105,13 @@ export default function SignInCard() {
             //     error = "Login Failed";
             // }
             console.log('signing in with phone');
-            const {phoneNumber} = validatePhoneNumber(emailOrPhone as string);
+            const { phoneNumber } = validatePhoneNumber(emailOrPhone as string);
             const response = await supabase.auth.signInWithPassword({
                 phone: phoneNumber!,
                 password: password as string,
             });
             console.log('done -> response:', response);
-            
+
             if (response.error) {
                 error = response.error?.message;
             }
@@ -226,25 +230,55 @@ export default function SignInCard() {
                             Forgot your password?
                         </Link>
                     </Box>
-                    <TextField
-                        error={passwordError}
-                        helperText={passwordErrorMessage}
-                        name="password"
-                        placeholder="•••••••••"
-                        type="password"
+                    <OutlinedInput
                         id="password"
-                        autoComplete="current-password"
-                        autoFocus
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        placeholder="••••••••"
                         required
+                        autoFocus
                         fullWidth
-                        variant="outlined"
+                        autoComplete="current-password"
+                        error={passwordError}
+                        // helperText={passwordErrorMessage}
                         color={passwordError ? 'error' : 'primary'}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: "center",
+                                        borderRadius: '50%',
+                                        cursor: 'pointer',
+                                        width: '40px',
+                                        height: '40px',
+                                        transition: 'background-color 0.3s ease',  // Smooth transition on hover
+                                        '&:hover': {
+                                            backgroundColor: theme.palette.action.hover,  // Change background on hover
+                                        },
+                                        transform: 'translate(12px)',
+                                    }}
+                                    onClick={handleClickShowPassword}>
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </Box>
+                            </InputAdornment>
+                        }
+                        label="Password"
                     />
+                    {passwordError && (
+                        <Typography color="error" variant="caption">
+                            &nbsp;&nbsp;&nbsp;&nbsp;{passwordErrorMessage}
+                        </Typography>
+                    )}
                 </FormControl>
-                <FormControlLabel
-                    control={<Checkbox value="remember" color="primary" />}
-                    label="Remember me"
-                />
+                <Box sx={{ ml: 1 }}>
+                    <FormControlLabel
+                        control={<Checkbox value="remember" color="primary" />}
+                        label="Remember me"
+                    />
+                </Box>
+
                 <Button type="submit" fullWidth variant="contained" onClick={validateInputs}>
                     Sign in
                 </Button>
@@ -280,7 +314,7 @@ export default function SignInCard() {
                     Sign in with Facebook
                 </Button>
             </Box> */}
-            <FullScreenOverlay open={openOverlay} message='Signing you in...'/>
+            <FullScreenOverlay open={openOverlay} message='Signing you in...' />
         </MtCard>
     );
 }

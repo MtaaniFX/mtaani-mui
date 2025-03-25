@@ -70,7 +70,7 @@ function VerticalLinearStepper({ activeStep }: { activeStep: number }) {
     );
 }
 
-export default function Main() {
+export default function Main(props: { inviteCode?: string }) {
     const supabase = createClient();
     const [activeStep, setActiveStep] = useState(0);
     const [currentPlan, setCurrentPlan] = useState('');
@@ -266,14 +266,14 @@ export default function Main() {
         // Register the user's referral
         const crud = new ReferralService(supabase);
         const response = await crud.getReferralCodeByCode(values.referralCode);
-        if(response.error || !response.data) {
+        if (response.error || !response.data) {
             console.error(response.error);
         }
 
         const referrerUserId = response.data?.user_id;
         if (referrerUserId) {
             const response = await crud.createReferral(referrerUserId, userId, values.referralCode);
-            if(response.error || !response.data) {
+            if (response.error || !response.data) {
                 console.error(response.error);
             }
         }
@@ -431,7 +431,9 @@ export default function Main() {
             <ThemeProvider theme={theme}>
                 {/* Step 5: Sign Up */
                     activeStep === steps.length && <>
-                        <SignUp onSubmit={handleSignupSubmit}></SignUp>
+                        <SignUp
+                            onSubmit={handleSignupSubmit}
+                            inviteCode={props.inviteCode} />
                     </>
                 }
             </ThemeProvider>
@@ -452,7 +454,9 @@ export default function Main() {
                 </Alert>
             </Snackbar>
 
-            <FullScreenOverlay open={overlayOpen} message="Creating investment..."></FullScreenOverlay>
+            <FullScreenOverlay
+                open={overlayOpen}
+                message="Creating investment..." />
         </>
     )
 }

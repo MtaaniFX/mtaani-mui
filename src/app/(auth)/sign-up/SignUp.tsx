@@ -20,7 +20,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { validatePhoneNumber } from '@/utils/validations';
 import ReactMarkdown from 'react-markdown';
-import { Terms } from "@/const";
+import { AppDomain, AppDomainNoProtocol, Terms } from "@/const";
 import { FaviconRow } from "@/components/internal/icons/Favicon";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -118,43 +118,72 @@ export type FormDetails = {
 }
 
 // Example usage:
-//  const baseUrl = "https://mtaani.devhive.buzz";  // This can be dynamically passed from the command line
-//  const result = validateReferralCode("https://mtaani.devhive.buzz/invite/?code=ABC123", baseUrl);
+//  const baseUrl = "https://mtaani.devhive.buzz";
+//  const result = validateReferralCode("https://mtaani.devhive.buzz/invite/ABC123", baseUrl);
 //  if (result.error) {
 //    console.log(result.error);
 //  } else {
 //    console.log(`Referral code is: ${result.code}`);
 //  }
 function validateReferralCode(referralCode: string, baseUrl: string): { code: string | null, error: string | null } {
-  // Regular expression to check if the referral code is a valid 6-digit alphanumeric code (A-Z, 0-9)
-  const regex = /^[A-Z0-9]{6}$/;
-
-  // Dynamic URL pattern to check for valid referral code format in the provided baseUrl
-  const urlPattern = new RegExp(`^${baseUrl.replace(/\/$/, '')}/invite/\\?code=([A-Z0-9]{6})$`, 'i');
+  // Regular expression to check if the referral code is a 
+  // valid 6-digit alphanumeric code (A-Z, a-z, 0-9)
+  const regex = /^[A-Za-z0-9]{6}$/;
 
   let code: string | null = null;
-
-  // If the referral code is in URL format
-  if (urlPattern.test(referralCode)) {
-    const match = referralCode.match(urlPattern);
-    if (match && match[1]) {
-      code = match[1];
-    }
-  }
-  // If the referral code is just 6 alphanumeric characters
-  else if (regex.test(referralCode)) {
+  if (regex.test(referralCode)) {
     code = referralCode;
+  } else {
+    const extract = extractInviteCode(referralCode, AppDomainNoProtocol);
+    code = extract.code;
   }
 
-  // Return the result
   if (code) {
     return { code, error: null };
   } else {
-    return { code: null, error: "Invalid referral code. It must be a 6 digit alphanumeric code." };
+    return { code: null, error: "Invalid referral code/link." };
   }
 }
 
-export default function SignUp(props: { onSubmit?: (values: FormDetails) => void }) {
+function extractInviteCode(url: string, domain: string): { code: string | null, error: Error | null } {
+  try {
+    const _ = new URL(url);
+  } catch (error) {
+    // try to add a URL scheme
+    url = `http://${url}`;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+
+    // Check scheme
+    if (parsedUrl.protocol !== "http:" &&
+      parsedUrl.protocol !== "https:") {
+      return { code: null, error: new Error("Invalid URL scheme. Must be http or https.") };
+    }
+
+    // Check domain.  This also handles cases where the input URL is relative.
+    if (!url.startsWith(`http://${domain}`) && !url.startsWith(`https://${domain}`)) {
+      if (!url.startsWith(`/invite/`) || !url.startsWith(`invite/`)) {
+        return { code: null, error: new Error("Invalid domain or relative URL format.") };
+      }
+    }
+
+    const pathSegments = parsedUrl.pathname.split("/");
+    // Check if the path contains "invite" and extract the code.
+    const inviteIndex = pathSegments.indexOf("invite");
+    if (inviteIndex === -1 || inviteIndex === pathSegments.length - 1) {
+      return { code: null, error: new Error("Invite code not found in URL path.") };
+    }
+
+    const inviteCode = pathSegments[inviteIndex + 1];
+    return { code: inviteCode, error: null };
+  } catch (error) {
+    return { code: null, error: new Error(`Invalid URL: ${error}`) };
+  }
+}
+
+export default function SignUp(props: { onSubmit?: (values: FormDetails) => void, inviteCode?: string }) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [nameError, setNameError] = React.useState(false);
@@ -252,9 +281,9 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
 
     setReferralError(false);
     setReferralErrorMessage("");
-    if(referralCode.value) {
-      const {error} = validateReferralCode(referralCode.value, "https://mtaani.devhive.buzz");
-      if(error) {
+    if (referralCode.value) {
+      const { error } = validateReferralCode(referralCode.value, AppDomain);
+      if (error) {
         setReferralError(true);
         setReferralErrorMessage(error || "Please enter a valid code");
       }
@@ -282,8 +311,8 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
     formDetails.phone = phoneNumber!;
 
     // submit the parsed referral code
-    const {code: referralCode} = validateReferralCode(formDetails.referralCode, "https://mtaani.devhive.buzz");
-    if(referralCode) {
+    const { code: referralCode } = validateReferralCode(formDetails.referralCode, AppDomain);
+    if (referralCode) {
       formDetails.referralCode = referralCode;
     }
 
@@ -390,7 +419,8 @@ export default function SignUp(props: { onSubmit?: (values: FormDetails) => void
               <TextField
                 fullWidth
                 id="referral"
-                placeholder="XXXXXX or https://mtaani.devhive.buzz/invite/?code=XXXXXX"
+                placeholder={`XXXXXX or ${AppDomain}/invite/XXXXXX`}
+                defaultValue={props.inviteCode}
                 name="referral"
                 autoComplete="referral"
                 variant="outlined"
