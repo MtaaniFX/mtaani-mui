@@ -23,7 +23,8 @@ import {
     ListItemIcon,
     ListItemText,
     Snackbar,
-    useTheme
+    useTheme,
+    Skeleton
 } from '@mui/material'
 import {
     ContentCopy,
@@ -170,7 +171,7 @@ export default function ReferralPage() {
         <>
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Hero />
-                
+
                 {/* Your Referral Details */}
                 <Box mb={4}>
                     <Typography id='cab-target' variant="h6" gutterBottom>
@@ -183,10 +184,12 @@ export default function ReferralPage() {
                                     Referral Code
                                 </Typography>
                                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {referralCode}
-                                    <IconButton onClick={handleCopyClick} size="small" sx={{ p: 1 }}>
-                                        <ContentCopy fontSize="small" />
-                                    </IconButton>
+                                    {loading ? <Skeleton variant="rounded" width={150} /> : <>
+                                        {referralCode}
+                                        <IconButton onClick={handleCopyClick} size="small" sx={{ p: 1 }}>
+                                            <ContentCopy fontSize="small" />
+                                        </IconButton>
+                                    </>}
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -194,11 +197,12 @@ export default function ReferralPage() {
                                     Referral Link
                                 </Typography>
                                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {/* referralLink.substring(0, 24)}... */}
-                                    {referralLink}
-                                    <IconButton onClick={handleCopyClick} size="small" sx={{ p: 1 }}>
-                                        <ContentCopy fontSize="small" />
-                                    </IconButton>
+                                    {loading ? <Skeleton variant="rounded" width={300} /> : <>
+                                        {referralLink}
+                                        <IconButton onClick={handleCopyClick} size="small" sx={{ p: 1 }}>
+                                            <ContentCopy fontSize="small" />
+                                        </IconButton>
+                                    </>}
                                 </Typography>
                             </Grid>
                         </Grid>

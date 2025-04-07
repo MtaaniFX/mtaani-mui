@@ -55,6 +55,41 @@ const NAVIGATION: Navigation = [
     title: 'Invest',
     icon: <AccountBalanceWalletRounded />,
   },
+
+  {
+    kind: 'header',
+    title: 'User',
+  },
+  {
+    segment: paths.dashboard.investments,
+    title: 'Investments',
+    icon: <DashboardIcon />,
+  },
+  {
+    segment: paths.dashboard.profile,
+    title: 'Profile',
+    icon: <DashboardIcon />,
+  },
+  
+  {
+    kind: 'header',
+    title: 'Activity',
+  },
+  {
+    segment: paths.dashboard.transactions,
+    title: 'Transactions',
+    icon: <DashboardIcon />,
+  },
+  {
+    segment: paths.dashboard.deposits,
+    title: 'Deposits',
+    icon: <DashboardIcon />,
+  },
+  {
+    segment: paths.dashboard.withdrawals,
+    title: 'Withdrawals',
+    icon: <DashboardIcon />,
+  },
   
   {
     kind: 'header',
@@ -65,21 +100,6 @@ const NAVIGATION: Navigation = [
     title: 'Referrals',
     icon: <Group />,
   },
-
-  // {
-  //   segment: paths.dashboard.orders,
-  //   title: 'Investments',
-  //   icon: <ShoppingCartIcon />,
-  // },
-  // {
-  //   kind: 'header',
-  //   title: 'User',
-  // },
-  // {
-  //   segment: paths.dashboard.profile,
-  //   title: 'Profile',
-  //   icon: <PersonIcon />,
-  // },
 ];
 
 const BRANDING = {
@@ -143,6 +163,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       },
     };
   }, []);
+  
   return (
     <main data-toolpad-color-scheme="dark">
       <AppRouterCacheProvider options={{ enableCssLayer: true }}>

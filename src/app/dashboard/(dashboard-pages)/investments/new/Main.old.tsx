@@ -1,7 +1,7 @@
 'use client'
 
 import Typography from "@mui/material/Typography";
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -11,18 +11,16 @@ import StepInvestmentPlan from "@/app-components/investment/create/components/St
 import StepInvestmentType from "@/app-components/investment/create/components/StepInvestmentType";
 import InvestmentSelection from "@/app-components/investment/create/components/InvestmentSelection";
 import StepCreateInvestment from "@/app-components/investment/create/components/StepCreateInvestment";
+import GroupForm, { GroupData } from "@/app-components/investment/create/components/GroupForm";
 import NumberBadge from '@/app-components/investment/create/NumberBadge';
-import { Alert, AlertTitle, Snackbar, Stack } from '@mui/material';
+import { Alert, AlertTitle, Snackbar, Stack, ThemeProvider } from '@mui/material';
 import StepAccordion, { } from '@/app-components/investment/create/StepAccordion';
+// import AppGroupInvestmentAmountPicker from "@/app-components/AppGroupInvestmentAmountPicker";
+import { createClient } from "@/utils/supabase/client";
 import { FullScreenOverlay } from "@/app-components/loaders/loaders";
 import { useRouter } from "next/navigation";
-import { locations} from "@/lib/paths";
-import GroupForm2 from "@/app-components-v2/investments/create/GroupForm";
-import { GroupFormDataCreate, NewMemberData, UploadFileFunction } from "@/app-components-v2/investments/create/types";
-import { uploadGroupFile } from "@/app-components-v2/investments/create/supabase/upload";
-import { group_members } from "@/database/buckets";
-import { numberOrDefault } from '@/js-utils/convert';
-import * as AppInvestmentsClient from "@/app/api/v1/app_investments/investments/client";
+import { paths } from "@/lib/paths";
+import { ReferralService } from "@/database/referrals/crud";
 
 const steps = [
     {
@@ -70,13 +68,14 @@ function VerticalLinearStepper({ activeStep }: { activeStep: number }) {
 }
 
 export default function Main() {
+    const supabase = createClient();
     const [activeStep, setActiveStep] = useState(0);
     const [currentPlan, setCurrentPlan] = useState('');
     const [currentType, setCurrentType] = useState('');
     const [selectedTerm, setSelectedTerm] = useState('');
     const [termDuration, setTermDuration] = useState('');
     const [investmentAmount, setInvestmentAmount] = useState('');
-    const [groupData, setGroupData] = useState<GroupFormDataCreate | null>(null);
+    const [groupData, setGroupData] = useState<GroupData | null>(null);
 
     const [openSnackbarAlert, setOpenSnackbarAlert] = useState(false);
     const [snackbarAlertErrorMessage, setSnackbarAlertErrorMessage] = useState('');
@@ -84,7 +83,6 @@ export default function Main() {
     const [overlayOpen, setOverlayOpen] = useState(false);
     const router = useRouter();
 
-    // BEGIN: Stepper controls 
     const handleNext = () => {
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
     };
@@ -92,64 +90,23 @@ export default function Main() {
     const handleBack = () => {
         setActiveStep((prevActiveStep) => {
             const nextStep = prevActiveStep - 1;
-            return nextStep < 0 ? prevActiveStep : nextStep;
+            if (nextStep < 0) {
+                return prevActiveStep;
+            }
+            return nextStep;
         });
     };
 
     const handleReset = () => {
         setActiveStep(0);
     };
-    // END: Stepper controls 
 
-
-    // BEGIN: Group investments
-
-    /**
-     * Provides the file upload functionality to the GroupForm component.
-     * Delegates the actual upload to the Supabase utility function.
-     */
-    const handleUploadFile: UploadFileFunction = useCallback(async (file: File) => {
-        try {
-            // Specify the bucket name you created in Supabase for member IDs
-            const bucketName = group_members;
-            const url = await uploadGroupFile(file, bucketName);
-            return url;
-        } catch (uploadError: any) {
-            console.error('Upload failed in page component:', uploadError);
-            // Re-throw the error so the IdPhotoUpload component can display it
-            throw new Error(uploadError.message || 'File upload failed.');
-        }
-    }, []);
-
-    /**
-    * Receives the group information data from the group information form; 
-    * including details such as the group's name, description, and members.
-    */
-    const handleCreateGroupSubmit = useCallback(async (data: GroupFormDataCreate) => {
-        setGroupData(data);
+    function handleCreateGroup(groupData: GroupData) {
+        setGroupData(groupData);
         handleNext();
-    }, []);
-
-    // END: Group investments
-
-    const OverlayMessages = {
-        createInvestment: "Creating your investment...",
-    }
-    const [overlayMessage, setOverlayMessage] = useState(OverlayMessages.createInvestment);
-
-    function handleSubmit() {
-        asyncHandleSubmit().then(() => {
-            console.log('[ok] investment created');
-            // Investment created successfully, 
-            // take the user to the dashboard to view their list of investments, 
-            // including the just created one
-            router.push(locations.dashboard.investments);
-        }).catch((reason: any) => {
-            console.log('[error] failed to create investment -> ', reason);
-        });
     }
 
-    async function asyncHandleSubmit() {
+    const handleSubmit = async () => {
         console.log("Submitting:", {
             currentPlan,
             currentType,
@@ -159,106 +116,135 @@ export default function Main() {
             groupData
         });
 
-        // Show an overlay to prevent further form input
+        // Open overlay so that the UI can accept no more input
         setOverlayOpen(true);
 
-        /** disable the overlay and show an error to the user in a persistent toast message */
-        function showError() {
+        // Allow the user to fill the form again, displaying the error messages
+        const showError = () => {
             setOpenSnackbarAlert(true);
             setSnackbarAlertErrorMessage('Failed to create investment, contact support');
             setOverlayOpen(false);
         }
-        
-        // --------- Record the investment ----------- 
-        setOverlayMessage(OverlayMessages.createInvestment);
 
-        let principal = numberOrDefault(investmentAmount, 0);
-        let locked_months = numberOrDefault(termDuration, 0);
-        let locked = selectedTerm === "locked";
+        const {data, error} = await supabase.auth.getUser();
+        if(error) {
+            console.error(error);
+            showError();
+            return;
+        }
+
+        const userId = data?.user?.id;
+        if (!userId) {
+            console.error('Signup response did not return a valid user id!!');
+            setOverlayOpen(false);
+            return;
+        }
+
+        let principal = 0;
+        try {
+            principal = Number.parseInt(investmentAmount, 10);
+        } catch (e) {
+            console.error(e);
+            principal = 0;
+        }
+
+        let locked_months = 0;
+        try {
+            locked_months = Number.parseInt(termDuration, 10)
+        } catch (e) {
+            console.error(e);
+            locked_months = 0;
+        }
+
+        if (!locked_months) {
+            locked_months = 0;
+        }
+
+        if (!principal) {
+            principal = 0;
+        }
+
+        let headersList = {
+            "Content-Type": "application/json"
+        }
 
         if (currentType === 'individual') {
-            let createError;
-            if (locked) {
+            let bodyContent = JSON.stringify({
+                "user_id": userId,
+                "principal": principal,
+                "inv_type": selectedTerm === "locked" ? "locked" : "normal",
+                "locked_months": locked_months,
+            });
+
+            let response = await fetch("/api/v1/investments/individual", {
+                method: "POST",
+                body: bodyContent,
+                headers: headersList
+            });
+
+            if (response.ok) {
                 try {
-                    const inv_id = await
-                    AppInvestmentsClient.createLockedIndividualInvestment({
-                        amount: principal,
-                        lockedMonths: locked_months
-                    });
-                    console.log('[ok] created locked individual investment -> id:', inv_id);
+                    let data = await response.json();
+                    console.log(data);
                 } catch (e) {
-                    createError = String(e) ||
-                        "[error] failed to create locked individual investment";
+                    console.error(e);
+                    setOverlayOpen(false);
+                    return;
                 }
+
             } else {
-                try {
-                    const inv_id = await
-                    AppInvestmentsClient.createNormalIndividualInvestment({ amount: principal });
-                    console.log('[ok] created normal individual investment -> id:', inv_id);
-                } catch (e) {
-                    createError = String(e) ||
-                        "[error] failed to create normal individual investment";
-                }
+                showError();
             }
 
-            if (createError) {
-                showError();
-                throw new Error(createError);
-            }
         } else if (currentType === 'group') {
-            // Cast an object of type NewMemberData to ExternalMemberInput
-            function convert(a: NewMemberData): AppInvestmentsClient.ExternalMemberInput {
-                return {
-                    name: a.fullName,
-                    phone: a.phoneNumber,
-                    nationalId: a.nationalId,
-                    titles: [a.title],
-                    backPhoto: a.idBackPhotoUrl || '',
-                    frontPhoto: a.idFrontPhotoUrl || '',
-                };
+            if (!groupData) {
+                console.error("groupData is invalid:", groupData);
+                showError();
+                return;
             }
 
-            let createError;
-            if (locked) {
+            let bodyContent = JSON.stringify({
+                "group_name": groupData.name,
+                "group_description": groupData.description ? groupData.description : "",
+                "inv_type": selectedTerm === "locked" ? "locked" : "normal",
+                "locked_months": locked_months,
+                "members": !groupData.members
+                    ? []
+                    : groupData.members.map(member => ({
+                        phone_number: member.value,
+                        full_name: "",
+                        national_id_number: "",
+                        positions: [member.post.toLowerCase()] // Make sure the post is lowercase
+                    })),
+            });
+
+            let response = await fetch("/api/v1/investments/group", {
+                method: "POST",
+                body: bodyContent,
+                headers: headersList
+            });
+
+            if (response.ok) {
                 try {
-                    const response = await AppInvestmentsClient
-                        .createLockedGroupInvestment({
-                            amount: principal,
-                            lockedMonths: locked_months,
-                            groupName: groupData?.name!!,
-                            groupDescription: groupData?.description,
-                            externalMembers: groupData?.members.map((member) => convert(member)),
-                        });
-                    console.log("[ok] created locked group investment -> ", response);
+                    let data = await response.json();
+                    console.log(data);
+
                 } catch (e) {
-                    createError = String(e) ||
-                        "[error] failed to create locked group investment";
+                    console.error(e);
+                    setOverlayOpen(false);
+                    return;
                 }
 
             } else {
-                try {
-                    const response = await AppInvestmentsClient
-                        .createNormalGroupInvestment({
-                            amount: principal,
-                            groupName: groupData?.name!!,
-                            groupDescription: groupData?.description,
-                            externalMembers: groupData?.members.map((member) => convert(member)),
-                        });
-                    console.log("[ok] created normal group investment -> ", response);
-                } catch (e) {
-                    createError = String(e) ||
-                        "[error] failed to create normal group investment";
-                }
-            }
-
-            if (createError) {
                 showError();
-                throw new Error(createError);
             }
         } else {
+            console.error('Unhandled investment type: ', currentType);
             showError();
-            throw new Error(`Unhandled investment type: ${currentType}`);
+            return;
         }
+
+        router.replace(`/${paths.dashboard.investments}`);
     }
 
     return (
@@ -266,11 +252,7 @@ export default function Main() {
             {
                 activeStep === 0 && <>
                     <Typography variant='h5' gutterBottom>
-                    Shape Your Investment Journey!
-                    </Typography>
-
-                    <Typography variant='caption' gutterBottom>
-                       Select from a range of investment options
+                        Create an investment
                     </Typography>
                 </>
             }
@@ -278,8 +260,8 @@ export default function Main() {
             {
                 activeStep >= 0 && activeStep < steps.length && <>
                     {/* Steps at a glance accordion */}
-                    <Box sx={{ my: 1.5 }} >
-                         <StepAccordion>
+                    <div>
+                        <StepAccordion>
                             <Box>
                                 <Stack direction="row" spacing={1}>
                                     <NumberBadge number={activeStep + 1} size={24} />
@@ -289,11 +271,13 @@ export default function Main() {
                             <Typography variant='subtitle2'>Steps at a glance</Typography>
                             <VerticalLinearStepper activeStep={activeStep} />
                         </StepAccordion>
-                    </Box>
+                    </div>
                 </>
             }
 
-            {/* Stepper Tabs */}
+            <Box sx={{ my: 1.5 }} />
+
+            {/* Step Tabs */}
             {/* Step 1 */}
             <div style={{ display: activeStep === 0 ? "block" : "none" }}>
                 {/* <Typography gutterBottom>{steps[activeStep].description}</Typography> */}
@@ -350,20 +334,9 @@ export default function Main() {
             {/* Step 3 */}
             <div style={{ display: activeStep === 2 ? "block" : "none" }}>
                 {currentType === 'group'
-                    ? <GroupForm2
-                        mode="create"
-                        onSubmit={handleCreateGroupSubmit}
-                        uploadFile={handleUploadFile}
-                        // Use 'phoneNumber' as the unique key for members within the form session
-                        // Ensure phone numbers are validated for uniqueness client-side 
-                        // by GroupForm
-                        memberIdKey="phoneNumber"
-                        onSecondaryAction={handleBack}
-                        secondaryActionLabel="Cancel"
-                        submitActionLabel="Create Group"
-                        // Disable the form while the page is processing the final submission
-                        disabled={false}
-                    />
+                    ? <GroupForm
+                        handleBack={handleBack}
+                        handleCreateGroup={handleCreateGroup} />
                     : <InvestmentSelection
                         selectedTerm={selectedTerm}
                         setSelectedTerm={setSelectedTerm}
@@ -376,6 +349,21 @@ export default function Main() {
 
             {/* Step 4 */}
             <div style={{ display: activeStep === 3 ? "block" : "none" }}>
+                {/* {currentType === 'group'
+                    ? <>
+                        <AppGroupInvestmentAmountPicker
+                            investmentAmount={investmentAmount}
+                            setInvestmentAmount={setInvestmentAmount}
+                            handleBack={handleBack}
+                            handleSubmit={handleSubmit} />
+                    </>
+                    : <StepCreateInvestment
+                        selectedPlan={currentPlan}
+                        investmentAmount={investmentAmount}
+                        setInvestmentAmount={setInvestmentAmount}
+                        handleSubmit={handleSubmit}
+                        changePlan={handleReset} />
+                } */}
                 <StepCreateInvestment
                     selectedPlan={currentPlan}
                     investmentAmount={investmentAmount}
@@ -400,9 +388,7 @@ export default function Main() {
                 </Alert>
             </Snackbar>
 
-            <FullScreenOverlay
-                open={overlayOpen}
-                message={overlayMessage} />
+            <FullScreenOverlay open={overlayOpen} message="Creating investment..."></FullScreenOverlay>
         </>
     )
 }

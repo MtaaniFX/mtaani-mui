@@ -1,311 +1,142 @@
-'use client';
+import Overview from "./overview/Overview";
+import { createClient, createServiceRoleClient } from "@/utils/supabase/server";
+import { Transaction } from "./overview/TransactionsOverview";
+import { isPhoneVerified } from "@/database/supabase";
+import * as Transactions from '@/database/app_transactions/transactions';
+import * as Investments from '@/database/app_investments/investments';
+import { numberOrDefault } from "@/js-utils/convert";
 
-import { useEffect, useState } from 'react';
-import { Typography, List, ListItem, ListItemText, Chip, Box, CircularProgress, LinearProgress, Card, CardContent, Button, Alert } from '@mui/material';
-import { createClient } from '@/utils/supabase/client';
-import { AccountBalance } from '@mui/icons-material';
-import * as React from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Slide from '@mui/material/Slide';
-import { TransitionProps } from '@mui/material/transitions';
-import PaymentInfo from './payment';
-import { PaymentPhoneNumber } from '@/const';
+export default async function () {
+    const { date, count } = getDaysUntilFifth();
+    console.log('date: ', date);
 
-type IndividualInvestment = {
-    id: string;
-    status: string;
-    principal: number;
-    inv_type: 'normal' | 'locked';
-    locked_months: number;
-    created_at: string;
-};
+    const supabase = await createClient();
+    const data = await supabase.auth.getUser();
 
-type GroupInvestment = {
-    id: string;
-    status: string;
-    group_name: string;
-    inv_type: 'normal' | 'locked';
-    locked_months: number;
-    created_at: string;
-};
+    if (data.error) {
+        console.error('[error] failed to get user: are you authenticated??');
+        return <></>;
+    }
+    console.log('found user:', data.data.user.id);
 
-type Investment = {
-    type: string, //'individual' | 'group';
-    data: IndividualInvestment | GroupInvestment,
-};
+    // Get the user's balance
+    const user = data.data.user;
+    const { data: balance, error } = await Transactions.getBalance(user.id);
+    if (error) {
+        console.error('[error] getting user balance');
+        console.error('....... failed to get user balance:', error);
+        return <></>;
+    }
 
-// Dialogue transition
-const Transition = React.forwardRef(function Transition(
-    props: TransitionProps & {
-        children: React.ReactElement<any, any>;
-    },
-    ref: React.Ref<unknown>,
-) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+    console.log('[ok] getting user balance');
 
+    const initialTransactions: Transaction[] = await fetchTransactions();
+    const isVerified = await isPhoneVerified(supabase);
 
-function AlertDialogSlide() {
-    const [open, setOpen] = React.useState(false);
-
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
+    let totalInvestment = 0;
+    await (async function () {
+        let dbTotalInvestment = await Investments.getTotalInvestmentAmount(user.id);
+        totalInvestment = numberOrDefault(dbTotalInvestment || "", 0);
+    })();
 
     return (
-        <React.Fragment>
-            <Button variant="outlined" onClick={handleClickOpen}>
-                Slide in alert dialog
-            </Button>
-            <Dialog
-                open={open}
-                TransitionComponent={Transition}
-                keepMounted
-                onClose={handleClose}
-                aria-describedby="alert-dialog-slide-description"
-            >
-                <DialogTitle>{"Use Google's location service?"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-slide-description">
-                        Let Google help apps determine location. This means sending anonymous
-                        location data to Google, even when no apps are running.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Disagree</Button>
-                    <Button onClick={handleClose}>Agree</Button>
-                </DialogActions>
-            </Dialog>
-        </React.Fragment>
-    );
+        <Overview
+            accountBalance={balance?.amount || 0}
+            // TODO: fetch actual referral earnings data
+            referralEarnings={0}
+            isVerified={isVerified}
+            daysToWithdrawal={count}
+            withdrawalDate={date}
+            initialTransactions={initialTransactions}
+            fetchTransactions={fetchTransactions}
+            totalInvestment={totalInvestment} />
+    )
 }
 
+async function fetchTransactions(): Promise<Transaction[]> {
+    "use server"
 
-export default function InvestmentsList() {
-    const supabase = createClient();
-    const [investments, setInvestments] = useState<Investment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const supabase = await createClient();
+    const response = await supabase.auth.getUser();
 
-    const [open, setOpen] = React.useState(false);
-    const [phoneNumber, setPhoneNumber] = React.useState(PaymentPhoneNumber);
-    const [amount, setAmount] = React.useState('');
+    if (response.error || !response.data) {
+        console.log('failed to get user: are you authenticated??');
+        return [];
+    }
 
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
+    const user = response.data.user;
 
-    const handleClose = () => {
-        setOpen(false);
-    };
+    console.log('>>> fetching recent transactions for user with ID:', user.id);
+    const { data, error } = await Transactions.getRecentTransactions(user.id);
+    if (error || !data) {
+        console.log('error fetching recent transactions for user with ID:', user.id);
+        return [];
+    }
 
-    const fetchInvestments = async () => {
-        try {
-            // Get the current user's session
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                throw new Error('User not logged in');
-            }
+    return data.map((value, idx) => {
+        const tx: any = {};
+        tx.amount = value.amount;
+        tx.currency = 'KES';
+        tx.id = idx.toString();
+        tx.type = value.type;
+        return tx as Transaction;
+    });
+}
 
-            console.log('user data:', user);
+function getDaysUntilFifth(): { date: Date, count: number } {
+    // Create date object with Nairobi timezone (GMT+3)
+    const date = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi" }));
 
-            // Fetch individual investments
-            const { data: individualInvestments, error: individualError } = await supabase
-                .schema('app_lank_investments')
-                .from('individual_investments')
-                .select('*')
-                .eq('user_id', user.id);
+    // Get current day
+    const currentDay = date.getDate();
 
-            if (individualError) throw individualError;
+    // If it's the 5th, return 0
+    if (currentDay === 5) {
+        return { count: 0, date: date };
+    }
 
-            // Fetch group investments where the user is the owner
-            const { data: groupInvestments, error: groupError } = await supabase
-                .schema('app_lank_investments')
-                .from('group_investments')
-                .select('*')
-                .eq('owner', user.id);
+    // Get the last day of current month
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-            if (groupError) throw groupError;
+    date.setDate(5);
+    // Calculate days remaining
+    if (currentDay < 5) {
+        // If we're before the 5th, just subtract from 5
+        return { count: 5 - currentDay, date: date };
+    } else {
+        // If we're after the 5th, calculate days until 5th of next month
+        const nextMonth = date.getMonth() + 1;
+        date.setMonth(nextMonth <= 11 ? nextMonth : nextMonth - 12)
+        return { count: (lastDay - currentDay) + 5, date: date };
+    }
+}
 
-            // Combine and format the investments
-            const formattedInvestments: Investment[] = [
-                ...(individualInvestments?.map((inv) => ({
-                    type: 'individual',
-                    data: inv,
-                })) || []),
-                ...(groupInvestments?.map((inv) => ({
-                    type: 'group',
-                    data: inv,
-                })) || []),
-            ];
+type NumericValue = number | { amount: number };
 
-            setInvestments(formattedInvestments);
-        } catch (err) {
-            console.error('Error fetching investments:', err);
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
+/**
+ * Calculates the sum of numbers in an array, where the array can contain either numbers directly or objects with an `amount` property.
+ *
+ * // Example usage:
+// const numbers: number[] = [1, 2, 3, 4, 5];
+// const objects: { amount: number }[] = [{ amount: 10 }, { amount: 20 }, { amount: 30 }];
+// const mixed: NumericValue[] = [1, { amount: 5 }, 10, { amount: 15 }];
+
+// console.log("Sum of numbers:", sumNumericValues(numbers)); // Output: Sum of numbers: 15
+// console.log("Sum of objects:", sumNumericValues(objects)); // Output: Sum of objects: 60
+// console.log("Sum of mixed:", sumNumericValues(mixed));   // Output: Sum of mixed: 31
+ * @param {NumericValue[]} values An array of numbers or objects with an `amount` property.
+ * @returns {number} The sum of all numeric values in the array.
+ */
+function sumNumericValues(values: NumericValue[]): number {
+    let sum = 0;
+
+    for (const value of values) {
+        if (typeof value === 'number') {
+            sum += value;
+        } else {
+            sum += value.amount;
         }
-    };
-
-    useEffect(() => {
-        fetchInvestments();
-    }, [supabase]);
-
-    if (loading) {
-        return <LinearProgress sx={{ width: '100%' }} />;
     }
 
-    if (error) {
-        return (
-            <Card sx={{ textAlign: 'center', py: 4 }} elevation={0}>
-                <CardContent>
-                    <AccountBalance sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography color='error' variant="h6" gutterBottom >
-                        Error fetching Investments
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        size="large"
-                        onClick={async () => {
-                            setLoading(true);
-                            await fetchInvestments();
-                        }}
-                        disabled={loading}
-                    >
-                        Retry
-                    </Button>
-                </CardContent>
-            </Card>
-        );
-    }
-
-    if (investments.length === 0) {
-        return (
-            <Card sx={{ textAlign: 'center', py: 4 }} elevation={0}>
-                <CardContent>
-                    <AccountBalance sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                        No Active Investments
-                    </Typography>
-                    {/* <Typography color="text.secondary" sx={{ mb: 2 }}>
-                        Start your investment journey today and watch your money grow!
-                    </Typography> */}
-                    <Button
-                        variant="contained"
-                        size="large"
-                        onClick={async () => {
-                            setLoading(true);
-                            await fetchInvestments();
-                        }}
-                        disabled={loading}
-                    >
-                        Refresh
-                    </Button>
-                </CardContent>
-            </Card>
-        );
-    }
-
-    return (
-        <>
-            <List>
-                {investments.map((investment, index) => (
-                    <ListItem key={index} divider>
-                        <ListItemText
-                            primary={
-                                <>
-                                    <Typography variant="h6">
-                                        {investment.type === 'individual' ? 'Individual Investment' : `Group Investment: ${(investment.data as GroupInvestment).group_name}`}
-                                    </Typography>
-                                    <Box mt={1}>
-                                        <Chip
-                                            label={investment.data.inv_type === 'locked' ? 'Locked' : 'Normal'}
-                                            color={investment.data.inv_type === 'locked' ? 'secondary' : 'primary'}
-                                            size="small"
-                                        />
-                                        {investment.data.inv_type === 'locked' && (
-                                            <Chip
-                                                label={`${investment.data.locked_months} months`}
-                                                color="info"
-                                                size="small"
-                                                style={{ marginLeft: '8px' }}
-                                            />
-                                        )}
-                                    </Box>
-                                </>
-                            }
-                            secondary={
-                                <>
-                                    {investment.type === "individual" &&
-                                        <Typography variant="body2">
-                                            Amount: {(investment.data as IndividualInvestment).principal}
-                                        </Typography>
-                                    }
-                                    <Typography variant="body2">
-                                        Created: {new Date(investment.data.created_at).toLocaleDateString()}
-                                    </Typography>
-                                </>
-                            }
-                        />
-                        {investment.data.status !== "active" && <>
-                            <Button onClick={async () => {
-                                let amount = 0;
-                                if (investment.type === "individual") {
-                                    amount = (investment.data as IndividualInvestment).principal;
-                                }
-
-                                const { data: { user } } = await supabase.auth.getUser();
-                                if (!user) {
-                                    throw new Error('User not logged in');
-                                }
-
-                                console.log(`Initializing payment of  KES: ${amount} by phone: ${user.phone}`);
-                                setPhoneNumber(PaymentPhoneNumber);
-                                setAmount(String(amount));
-
-                                setOpen(true);
-                            }}>
-                                Make Payments
-                            </Button>
-                        </>
-                        }
-                    </ListItem>
-                ))}
-            </List>
-
-            <Dialog
-                open={open}
-                TransitionComponent={Transition}
-                keepMounted
-                onClose={handleClose}
-                aria-describedby="alert-dialog-slide-description"
-            >
-                <DialogTitle>Payment</DialogTitle>
-                <DialogContent>
-                    <Dialog
-                        open={open}
-                        TransitionComponent={Transition}
-                        keepMounted
-                        onClose={handleClose}
-                        aria-describedby="alert-dialog-slide-description"
-                    >
-                        {/* <DialogTitle>Payment Details</DialogTitle> */}
-                        <PaymentInfo phoneNumber={phoneNumber} amount={amount} />
-                        <DialogActions>
-                            <Button onClick={handleClose}>Ok</Button>
-                        </DialogActions>
-                    </Dialog>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
+    return sum;
 }
