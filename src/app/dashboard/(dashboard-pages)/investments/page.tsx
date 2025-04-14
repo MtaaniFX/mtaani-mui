@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AppName, AppDescription } from "@/const";
 import Main from "./Main";
-import { Container, Typography } from "@mui/material";
+import { Container, Typography, Card} from "@mui/material";
+import Box from "@mui/material/Box";
 
 export const metadata: Metadata = {
     title: `Investments | ${AppName}`,
@@ -11,8 +12,13 @@ export const metadata: Metadata = {
 export default function () {
     return (
         <Container>
-            <Typography variant="h5" sx={{my: 2}}>Your Investments</Typography>
-            <Main />
+            <Box sx={{my: 2}}></Box>
+            <Card variant="outlined" sx={{p: 3}}>
+                <Box>
+                    <Typography variantf="h5">Your Investments</Typography>
+                    <Main />
+                </Box>
+            </Card>
         </Container>
     )
 }
