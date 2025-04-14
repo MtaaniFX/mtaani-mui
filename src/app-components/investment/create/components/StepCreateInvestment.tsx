@@ -1,7 +1,10 @@
-import {Button, Link, TextField} from "@mui/material";
+import {Button, Card, Link, TextField} from "@mui/material";
 import {ReactStateString} from "@/types/react";
 import Typography from "@mui/material/Typography";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
+import Box from "@mui/material/Box";
+
+const INTEREST_RATE = 0.2;
 
 type Props = {
     investmentAmount: string,
@@ -46,6 +49,7 @@ function StepCreateInvestment(props: Props) {
     }
 
     const [amountError, setAmountError] = useState(false);
+    const [estimatedInterest, setEstimatedInterest] = useState('0');
     let [min_amount, max_amount] = planRange(selectedPlan);
     const [badRange, setBadRange] = useState(checkPlanRange(min_amount, max_amount));
 
@@ -56,6 +60,11 @@ function StepCreateInvestment(props: Props) {
 
     function handleAmountChange(newValue: string) {
         const amount = parseInt(newValue, 10);
+        if (!isNaN(amount)) {
+            setEstimatedInterest((amount * INTEREST_RATE).toLocaleString());
+        } else {
+            setEstimatedInterest('0');
+        }
         setAmountError(amount < min_amount || amount > max_amount);
         setInvestmentAmount(newValue);
     }
@@ -94,6 +103,20 @@ function StepCreateInvestment(props: Props) {
                         error={amountError}
                         required
                     />
+
+                    <Card variant="outlined" sx={{ mt: 2, p: 2, borderRadius: 1, maxWidth: 'fit-content', pr: 5 }}>
+                        <Typography variant="body1" component="p" >
+                            Estimated Interest
+                        </Typography>
+                        <Typography
+                            variant="h6"
+                            component="p"
+                            color="primary"
+                            sx={{ fontWeight: 'bold', mt: 0.5 }}
+                        >
+                            KES {estimatedInterest}
+                        </Typography>
+                    </Card>
                     <br/>
                 </>
             )}
