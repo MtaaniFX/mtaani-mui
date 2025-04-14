@@ -15,7 +15,7 @@ export default function () {
             <Box sx={{my: 2}}></Box>
             <Card variant="outlined" sx={{p: 3}}>
                 <Box>
-                    <Typography variantf="h5">Your Investments</Typography>
+                    <Typography variant="h5">Your Investments</Typography>
                     <Main />
                 </Box>
             </Card>
