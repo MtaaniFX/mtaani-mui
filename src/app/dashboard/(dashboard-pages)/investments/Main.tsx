@@ -17,16 +17,13 @@ import {
     useMediaQuery,
     useTheme,
     MobileStepper,
-    Paper,
     Divider,
     Chip,
     CircularProgress,
-    IconButton
 } from '@mui/material';
 import { KeyboardArrowLeft, KeyboardArrowRight, Payment, Info } from '@mui/icons-material';
 import { createClient } from '@/utils/supabase/client';
 import { Investment } from './types';
-import { createServiceRoleClient } from '@/utils/supabase/server';
 import { f } from './server.action';
 
 const InvestmentsList: React.FC = () => {
@@ -174,7 +171,7 @@ const InvestmentsList: React.FC = () => {
         return (
             <Box textAlign="center" py={4}>
                 <Typography variant="h6" color="textSecondary">
-                    No investments found
+                    No investments yet
                 </Typography>
             </Box>
         );
