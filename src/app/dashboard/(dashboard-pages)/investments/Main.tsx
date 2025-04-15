@@ -41,20 +41,20 @@ const InvestmentsList: React.FC = () => {
     const itemsPerPage = 6;
 
     useEffect(() => {
-        
+
         const fetchInvestments = async () => {
             setLoading(true);
             const supabase = createClient();
 
             let response = await f((await supabase.auth.getUser()).data.user?.id || '', page, itemsPerPage);
-            if(response) {
+            if (response) {
                 setTotalPages(response.totalPages);
                 setInvestments(response.investments || []);
             }
 
             setLoading(false);
         };
-        
+
         const fetchInvestments2 = async () => {
             const supabase = createClient();
             setLoading(true);
@@ -222,9 +222,9 @@ const InvestmentsList: React.FC = () => {
                                         </Box>
 
                                         <Box textAlign="right">
-                                            <Typography variant="body2">Returns</Typography>
+                                            <Typography variant="body2">Returns*</Typography>
                                             <Typography variant="h6" color="success.main">
-                                                KES {investment.accrued_returns.toLocaleString()}
+                                                KES {(investment.amount * 0.2).toLocaleString()}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -318,6 +318,15 @@ const InvestmentsList: React.FC = () => {
                                             <Grid item xs={6}>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Accrued Returns
+                                                </Typography>
+                                                <Typography variant="body1" color="primary">
+                                                KES {(selectedInvestment.amount * 0.2).toLocaleString()}
+                                                </Typography>
+                                            </Grid>
+                                            
+                                            <Grid item xs={6}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Earned Returns
                                                 </Typography>
                                                 <Typography variant="body1" color="success.main">
                                                     KES {selectedInvestment.accrued_returns.toLocaleString()}
@@ -471,6 +480,15 @@ const InvestmentsList: React.FC = () => {
                                         <Typography variant="body2" color="text.secondary">
                                             Accrued Returns
                                         </Typography>
+                                        <Typography variant="h6" color="primary">
+                                            KES {(selectedInvestment.amount * 0.2).toLocaleString()}
+                                        </Typography>
+                                    </Box>
+
+                                    <Box mb={2}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Earned Returns
+                                        </Typography>
                                         <Typography variant="h6" color="success.main">
                                             KES {selectedInvestment.accrued_returns.toLocaleString()}
                                         </Typography>
@@ -563,13 +581,6 @@ const InvestmentsList: React.FC = () => {
                                         {processingPayment ? 'Processing...' : 'Make Payment'}
                                     </Button>
                                 )}
-                                <Button
-                                    variant="outlined"
-                                    color="primary"
-                                    startIcon={<Info />}
-                                >
-                                    Support
-                                </Button>
                             </Box>
                             <Button onClick={handleClose} color="primary">
                                 Close
