@@ -124,9 +124,6 @@ async function generateInvoice(
     investment: Investment,
     userId: string) {
 
-    console.log('>>> function received investment id:', investment.id);
-    
-
     const { data: invoiceId, error } = await supabase
         .schema("app_investments")
         .rpc('create_investment_invoice', {

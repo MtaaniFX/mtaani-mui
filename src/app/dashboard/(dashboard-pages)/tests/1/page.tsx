@@ -24,7 +24,7 @@ export default function Page() {
             processingFee: 25,
             totalAmount: 10025,
         },
-        userBalance: 8000,
+        userBalance: 3000,
     };
 
     return <InvestmentInvoiceDetails {...mockData} />;
