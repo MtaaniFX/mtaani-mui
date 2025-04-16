@@ -169,14 +169,16 @@ export default function InvoiceDetails({
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="text.secondary">Created</Typography>
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {formatDate(invoice.created_at)}
+                    {/* {formatDate(invoice.created_at)} */}
+                    {invoice.created_at}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="text.secondary">Due Date</Typography>
                   <Typography variant="body1" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CalendarToday fontSize="small" />
-                    {formatDate(invoice.due_date)}
+                    {/* {formatDate(invoice.due_date)} */}
+                    {invoice.due_date}
                   </Typography>
                 </Grid>
               </Grid>

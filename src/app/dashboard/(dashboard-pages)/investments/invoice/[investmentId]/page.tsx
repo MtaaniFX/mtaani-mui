@@ -4,7 +4,7 @@ import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
 import { getBalance } from "@/database/app_transactions/transactions";
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Investment as InvoiceDetailsInvestment } from './components/InvoiceDetails';
-// import { } from "@/database/app_investments/investments";
+import { locations } from '@/lib/paths';
 
 type Investment = {
     "id": string,
@@ -42,7 +42,7 @@ export default async function InvoicePage({
 
     if (userError || !user) {
         // Redirect to login if user is not authenticated
-        redirect('/sign-in');
+        redirect(locations.auth.signIn);
     }
 
     let investment: Investment | null;
@@ -119,34 +119,37 @@ async function fetchInvestment(supabase: SupabaseClient, investmentId: string) {
     return data;
 }
 
-// TODO: 
 async function generateInvoice(
     supabase: SupabaseClient,
     investment: Investment,
     userId: string) {
 
-    const { data, error } = await supabase
+    console.log('>>> function received investment id:', investment.id);
+    
+
+    const { data: invoiceId, error } = await supabase
         .schema("app_investments")
         .rpc('create_investment_invoice', {
             p_investment_id: investment.id,
         });
 
-    if (error || !data) {
-        console.error(error);
+    if (error || !invoiceId) {
+        console.error('Error calling postgresql function ' + 
+            '`app_investments.create_investment_invoice`:', error);
         throw new Error("Failed to create invoice");
     }
 
-    const invoiceId = data.id as string;
+    console.log("Created investment with data (Invoice id):", invoiceId);
 
     const { data: invoice, error: invoiceError } = await supabase
         .schema("app_invoicing")
         .from("invoices")
         .select('*')
-        .eq("id", invoiceId)
+        .eq("id", invoiceId as string)
         .maybeSingle();
 
     if (invoiceError || !invoice) {
-        console.error(invoiceError);
+        console.error('Error fetching created investment invoice:', invoiceError);
         throw new Error("Failed to create invoice");
     }
 

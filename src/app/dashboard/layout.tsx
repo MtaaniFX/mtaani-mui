@@ -3,41 +3,25 @@
 import * as React from 'react';
 import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-// import PersonIcon from '@mui/icons-material/Person';
-// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LinearProgress from '@mui/material/LinearProgress'
 
 // import theme from '@/theme';
 import { rawTheme } from '@/theme';
 import { AppBarFavicon } from '@/components/internal/icons/Favicon';
 import { paths } from '@/lib/paths';
-import { AppName } from '@/const';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Avatar from '@mui/material/Avatar';
-import Divider from '@mui/material/Divider';
-import { createTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { AppProvider } from '@toolpad/core/AppProvider';
-import { DashboardLayout, SidebarFooterProps } from '@toolpad/core/DashboardLayout';
-import {
-  Account,
-  AccountPreview,
-  AccountPopoverFooter,
-  SignOutButton,
-  AccountPreviewProps,
-} from '@toolpad/core/Account';
-import type { Navigation, Router, Session } from '@toolpad/core/AppProvider';
+import type { Navigation, Session } from '@toolpad/core/AppProvider';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { FullScreenOverlay } from '@/app-components/loaders/loaders';
-import { AccountBalanceWalletRounded, Group } from '@mui/icons-material';
+
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import PersonIcon from '@mui/icons-material/Person';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import PeopleIcon from '@mui/icons-material/People';
+import SavingsIcon from '@mui/icons-material/Savings';
 
 
 const NAVIGATION: Navigation = [
@@ -53,24 +37,25 @@ const NAVIGATION: Navigation = [
   {
     segment: paths.dashboard.newInvestment,
     title: 'Invest',
-    icon: <AccountBalanceWalletRounded />,
+    icon: <SavingsIcon />,
   },
 
   {
     kind: 'header',
     title: 'User',
   },
+
   {
     segment: paths.dashboard.investments,
     title: 'Investments',
-    icon: <DashboardIcon />,
+    icon: <AccountBalanceIcon />,
   },
   {
     segment: paths.dashboard.profile,
     title: 'Profile',
-    icon: <DashboardIcon />,
+    icon: <PersonIcon />,
   },
-  
+
   {
     kind: 'header',
     title: 'Activity',
@@ -78,19 +63,19 @@ const NAVIGATION: Navigation = [
   {
     segment: paths.dashboard.transactions,
     title: 'Transactions',
-    icon: <DashboardIcon />,
+    icon: <ReceiptLongIcon />,
   },
   {
     segment: paths.dashboard.deposits,
     title: 'Deposits',
-    icon: <DashboardIcon />,
+    icon: <AccountBalanceWalletIcon />,
   },
   {
     segment: paths.dashboard.withdrawals,
     title: 'Withdrawals',
-    icon: <DashboardIcon />,
+    icon: <PaymentsIcon />,
   },
-  
+
   {
     kind: 'header',
     title: 'Marketing',
@@ -98,13 +83,13 @@ const NAVIGATION: Navigation = [
   {
     segment: paths.dashboard.referrals,
     title: 'Referrals',
-    icon: <Group />,
+    icon: <PeopleIcon />,
   },
 ];
 
 const BRANDING = {
   title: "",
-  logo: <AppBarFavicon/>,
+  logo: <AppBarFavicon />,
   homeUrl: '/',
 };
 
@@ -163,7 +148,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       },
     };
   }, []);
-  
+
   return (
     <main data-toolpad-color-scheme="dark">
       <AppRouterCacheProvider options={{ enableCssLayer: true }}>
